@@ -2,13 +2,15 @@
 
 namespace Tigress;
 
+use Repository\system_rightsRepo;
+
 /**
  * Class Rights (PHP version 8.3)
  *
  * @author       Rudy Mas <rudy.mas@rudymas.be>
  * @copyright    2024, Rudy Mas (http://rudymas.be/)
  * @license      https://opensource.org/licenses/GPL-3.0 GNU General Public License, version 3 (GPL-3.0)
- * @version      1.0.2
+ * @version      1.0.3
  * @lastmodified 2024-09-18
  * @package      Tigress
  */
@@ -23,7 +25,7 @@ class Rights
      */
     public static function version(): string
     {
-        return '1.0.2';
+        return '1.0.3';
     }
 
     /**
@@ -89,5 +91,28 @@ class Rights
             array_pop($parts);
         }
         return null;
+    }
+
+    /**
+     * Get the special rights for a user
+     *
+     * @param int $user_id
+     * @return array
+     */
+    public static function getSpecialRights(int $user_id): array
+    {
+        $systemRights = new system_rightsRepo();
+        $systemRights->loadByWhere(['user_id' => $user_id]);
+
+        $rights = [];
+        foreach ($systemRights as $systemRight) {
+            $rights[$systemRight->tool] = [
+                'toegang' => $systemRight->toegang,
+                'lees' => $systemRight->lees,
+                'schrijf' => $systemRight->schrijf,
+                'verwijder' => $systemRight->verwijder,
+            ];
+        }
+        return $rights;
     }
 }
