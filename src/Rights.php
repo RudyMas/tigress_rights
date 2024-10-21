@@ -10,7 +10,7 @@ use Repository\system_rightsRepo;
  * @author       Rudy Mas <rudy.mas@rudymas.be>
  * @copyright    2024, Rudy Mas (http://rudymas.be/)
  * @license      https://opensource.org/licenses/GPL-3.0 GNU General Public License, version 3 (GPL-3.0)
- * @version      1.1.0
+ * @version      1.1.1
  * @lastmodified 2024-09-21
  * @package      Tigress
  */
@@ -25,7 +25,7 @@ class Rights
      */
     public static function version(): string
     {
-        return '1.1.0';
+        return '1.1.1';
     }
 
     /**
@@ -117,7 +117,7 @@ class Rights
     }
 
     /**
-     * Check if the user has the right to access a page
+     * Check if the user has the right to access a page based on the main path
      *
      * @param string $action
      * @return bool
@@ -127,8 +127,38 @@ class Rights
         $path = $_SERVER['REQUEST_URI'];
         $path = explode('?', $path)[0];
         $path = rtrim($path, '/');
-        $path = $path ?: '/';
+        $path = explode('/', $path)[1];
+        $path = '/' . $path;
 
+        return $this->processCheckRights($path, $action);
+    }
+
+    /**
+     * Check if the user has the right to access a page based on a specific path
+     *
+     * @param string $path
+     * @param string $action
+     * @return bool
+     */
+    public function checkRightsForSpecificPath(string $path, string $action = 'toegang'): bool
+    {
+        if (!str_starts_with($path, '/')) {
+            $path = '/' . $path;
+        }
+        $path = rtrim($path, '/');
+
+        return $this->processCheckRights($path, $action);
+    }
+
+    /**
+     * Process the check rights
+     *
+     * @param string $path
+     * @param string $action
+     * @return bool
+     */
+    private function processCheckRights(string $path, string $action): bool
+    {
         if (!isset($this->accessList[$path])) {
             return false;
         }
@@ -137,8 +167,8 @@ class Rights
 
         if (
             (
-                in_array($_SESSION['userData']['rechten'], $rights['level_rights'])
-                || $_SESSION['userData']['rechten'] == 100
+                in_array($_SESSION['user']['rechten'], $rights['level_rights'])
+                || $_SESSION['user']['rechten'] == 100
             )
             || (
                 isset($_SESSION['userRights'][$rights['special_rights']])
