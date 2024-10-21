@@ -122,7 +122,7 @@ class Rights
      * @param string $action
      * @return bool
      */
-    public function checkRechten(string $action = 'toegang'): bool
+    public function checkRights(string $action = 'toegang'): bool
     {
         $path = $_SERVER['REQUEST_URI'];
         $path = explode('?', $path)[0];
