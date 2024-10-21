@@ -10,7 +10,7 @@ use Repository\system_rightsRepo;
  * @author       Rudy Mas <rudy.mas@rudymas.be>
  * @copyright    2024, Rudy Mas (http://rudymas.be/)
  * @license      https://opensource.org/licenses/GPL-3.0 GNU General Public License, version 3 (GPL-3.0)
- * @version      1.1.4
+ * @version      1.2.0
  * @lastmodified 2024-09-21
  * @package      Tigress
  */
@@ -25,7 +25,7 @@ class Rights
      */
     public static function version(): string
     {
-        return '1.1.4';
+        return '1.2.0';
     }
 
     /**
@@ -167,8 +167,9 @@ class Rights
 
         if (
             (
-                in_array($_SESSION['user']['rechten'], $rights['level_rights'])
-                || $_SESSION['user']['rechten'] == 100
+                empty($rights['level_rights'])
+                || in_array($_SESSION['user']['right'], $rights['level_rights'])
+                || $_SESSION['user']['right'] == 100
             )
             || (
                 isset($rights['special_rights'])
