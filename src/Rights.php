@@ -10,8 +10,8 @@ use Repository\system_rightsRepo;
  * @author       Rudy Mas <rudy.mas@rudymas.be>
  * @copyright    2024, Rudy Mas (http://rudymas.be/)
  * @license      https://opensource.org/licenses/GPL-3.0 GNU General Public License, version 3 (GPL-3.0)
- * @version      1.0.3
- * @lastmodified 2024-09-18
+ * @version      1.1.0
+ * @lastmodified 2024-09-21
  * @package      Tigress
  */
 class Rights
@@ -25,7 +25,7 @@ class Rights
      */
     public static function version(): string
     {
-        return '1.0.3';
+        return '1.1.0';
     }
 
     /**
@@ -114,5 +114,39 @@ class Rights
             ];
         }
         return $rights;
+    }
+
+    /**
+     * Check if the user has the right to access a page
+     *
+     * @param string $action
+     * @return bool
+     */
+    public function checkRechten(string $action = 'toegang'): bool
+    {
+        $path = $_SERVER['REQUEST_URI'];
+        $path = explode('?', $path)[0];
+        $path = rtrim($path, '/');
+        $path = $path ?: '/';
+
+        if (!isset($this->accessList[$path])) {
+            return false;
+        }
+
+        $rights = $this->accessList[$path];
+
+        if (
+            (
+                in_array($_SESSION['userData']['rechten'], $rights['level_rights'])
+                || $_SESSION['userData']['rechten'] == 100
+            )
+            || (
+                isset($_SESSION['userRights'][$rights['special_rights']])
+                && $_SESSION['userRights'][$rights['special_rights']][$action]
+            )
+        ) {
+            return true;
+        }
+        return false;
     }
 }
