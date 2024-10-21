@@ -10,7 +10,7 @@ use Repository\system_rightsRepo;
  * @author       Rudy Mas <rudy.mas@rudymas.be>
  * @copyright    2024, Rudy Mas (http://rudymas.be/)
  * @license      https://opensource.org/licenses/GPL-3.0 GNU General Public License, version 3 (GPL-3.0)
- * @version      1.1.2
+ * @version      1.1.3
  * @lastmodified 2024-09-21
  * @package      Tigress
  */
@@ -25,7 +25,7 @@ class Rights
      */
     public static function version(): string
     {
-        return '1.1.2';
+        return '1.1.3';
     }
 
     /**
@@ -122,7 +122,7 @@ class Rights
      * @param string $action
      * @return bool
      */
-    public function checkRights(string $action = 'toegang'): bool
+    public function checkRights(string $action = 'access'): bool
     {
         $path = $_SERVER['REQUEST_URI'];
         $path = explode('?', $path)[0];
@@ -140,7 +140,7 @@ class Rights
      * @param string $action
      * @return bool
      */
-    public function checkRightsForSpecificPath(string $path, string $action = 'toegang'): bool
+    public function checkRightsForSpecificPath(string $path, string $action = 'access'): bool
     {
         if (!str_starts_with($path, '/')) {
             $path = '/' . $path;
