@@ -10,8 +10,8 @@ use Repository\system_rightsRepo;
  * @author       Rudy Mas <rudy.mas@rudymas.be>
  * @copyright    2024, Rudy Mas (http://rudymas.be/)
  * @license      https://opensource.org/licenses/GPL-3.0 GNU General Public License, version 3 (GPL-3.0)
- * @version      1.2.0
- * @lastmodified 2024-09-21
+ * @version      1.2.1
+ * @lastmodified 2024-09-22
  * @package      Tigress
  */
 class Rights
@@ -25,7 +25,7 @@ class Rights
      */
     public static function version(): string
     {
-        return '1.2.0';
+        return '1.2.1';
     }
 
     /**
@@ -127,8 +127,6 @@ class Rights
         $path = $_SERVER['REQUEST_URI'];
         $path = explode('?', $path)[0];
         $path = rtrim($path, '/');
-        $path = explode('/', $path)[1];
-        $path = '/' . $path;
 
         return $this->processCheckRights($path, $action);
     }
