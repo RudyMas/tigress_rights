@@ -10,8 +10,8 @@ use Repository\system_rightsRepo;
  * @author       Rudy Mas <rudy.mas@rudymas.be>
  * @copyright    2024, Rudy Mas (http://rudymas.be/)
  * @license      https://opensource.org/licenses/GPL-3.0 GNU General Public License, version 3 (GPL-3.0)
- * @version      1.2.2
- * @lastmodified 2024-09-23
+ * @version      1.3.0
+ * @lastmodified 2024-11-04
  * @package      Tigress
  */
 class Rights
@@ -25,7 +25,7 @@ class Rights
      */
     public static function version(): string
     {
-        return '1.2.2';
+        return '1.3.0';
     }
 
     /**
@@ -157,11 +157,21 @@ class Rights
      */
     private function processCheckRights(string $path, string $action): bool
     {
-        if (!isset($this->accessList[$path]) || !isset($_SESSION['user'])) {
+        // Check if the user is logged in
+        if (!isset($_SESSION['user'])) {
             return false;
         }
 
-        $rights = $this->accessList[$path];
+        // Check if the path is in the access list
+        if (isset($this->accessList[$path])) {
+            $rights = $this->accessList[$path];
+        } else {
+            if (str_starts_with($path, '/https://') || str_starts_with($path, '/http://')) {
+                return true;
+            } else {
+                return false;
+            }
+        }
 
         if (
             (
