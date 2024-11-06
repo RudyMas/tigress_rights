@@ -10,8 +10,8 @@ use Repository\system_rightsRepo;
  * @author       Rudy Mas <rudy.mas@rudymas.be>
  * @copyright    2024, Rudy Mas (http://rudymas.be/)
  * @license      https://opensource.org/licenses/GPL-3.0 GNU General Public License, version 3 (GPL-3.0)
- * @version      1.3.0
- * @lastmodified 2024-11-04
+ * @version      1.4.0
+ * @lastmodified 2024-11-06
  * @package      Tigress
  */
 class Rights
@@ -25,7 +25,7 @@ class Rights
      */
     public static function version(): string
     {
-        return '1.3.0';
+        return '1.4.0';
     }
 
     /**
@@ -38,7 +38,7 @@ class Rights
     {
         // First, build the access list for paths that explicitly have rights
         foreach (ROUTES->routes as $route) {
-            $path = $route->path;
+            $path = preg_replace('/{[^}]+}/', '*', $route->path);
 
             // Add level-rights, special-rights, and special-rights-default if available
             $this->accessList[$path] = [
@@ -75,6 +75,8 @@ class Rights
     }
 
     /**
+     * Get the parent rights
+     *
      * @param $path
      * @param $accessList
      * @return mixed|null
@@ -157,27 +159,36 @@ class Rights
      */
     private function processCheckRights(string $path, string $action): bool
     {
-        // Check if the user is logged in
+        // Ensure the user is logged in
         if (!isset($_SESSION['user'])) {
             return false;
         }
 
-        // Check if the path is in the access list
-        if (isset($this->accessList[$path])) {
-            $rights = $this->accessList[$path];
-        } else {
-            if (str_starts_with($path, '/https://') || str_starts_with($path, '/http://')) {
-                return true;
-            } else {
-                return false;
+        $rights = null;
+
+        // Match the path in the access list with support for wildcards
+        foreach ($this->accessList as $key => $value) {
+            $pattern = '#^' . preg_replace('#\\\\\*#', '([^/]+)', preg_quote($key, '#')) . '$#';
+
+            if (preg_match($pattern, $path)) {
+                $path = $key;
+                $rights = $value;
+                break;
             }
         }
 
+        // If no match is found, allow URLs or deny access
+        if ($rights === null) {
+            return str_starts_with($path, '/https://') || str_starts_with($path, '/http://');
+        }
+
+        // Validate level rights or special rights
+        $userRight = $_SESSION['user']['right'];
         if (
             (
                 empty($rights['level_rights'])
-                || in_array($_SESSION['user']['right'], $rights['level_rights'])
-                || $_SESSION['user']['right'] == 100
+                || in_array($userRight, $rights['level_rights'])
+                || $userRight == 100
             )
             || (
                 isset($rights['special_rights'])
