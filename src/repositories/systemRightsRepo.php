@@ -5,15 +5,15 @@ namespace Repository;
 use Tigress\Repository;
 
 /**
- * Repository for users table
+ * Repository for system_rights table
  */
-class system_rightsRepo extends Repository
+class systemRightsRepo extends Repository
 {
     public function __construct()
     {
         $this->dbName = 'default';
         $this->table = 'system_rights';
-        $this->model = 'system_right';
+        $this->model = 'systemRight';
         $this->autoload = true;
         parent::__construct();
     }
