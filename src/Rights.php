@@ -10,7 +10,7 @@ use Repository\systemRightsRepo;
  * @author       Rudy Mas <rudy.mas@rudymas.be>
  * @copyright    2024, Rudy Mas (http://rudymas.be/)
  * @license      https://opensource.org/licenses/GPL-3.0 GNU General Public License, version 3 (GPL-3.0)
- * @version      1.5.0
+ * @version      1.5.1
  * @lastmodified 2024-11-08
  * @package      Tigress
  */
@@ -25,7 +25,7 @@ class Rights
      */
     public static function version(): string
     {
-        return '1.5.0';
+        return '1.5.1';
     }
 
     /**
@@ -191,7 +191,7 @@ class Rights
         }
 
         // Validate level rights or special rights
-        $userRight = $_SESSION['user']['right'];
+        $userRight = $_SESSION['user']['access_level'];
         return (
             (
                 empty($rights['level_rights'])
