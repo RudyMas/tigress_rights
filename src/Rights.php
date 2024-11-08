@@ -29,6 +29,61 @@ class Rights
     }
 
     /**
+     * Check if the user has the right to access a page based on the main path
+     *
+     * @param string $action
+     * @return bool
+     */
+    public function checkRights(string $action = 'access'): bool
+    {
+        $path = $_SERVER['REQUEST_URI'];
+        $path = explode('?', $path)[0];
+        $path = rtrim($path, '/');
+
+        return $this->processCheckRights($path, $action);
+    }
+
+    /**
+     * Check if the user has the right to access a page based on a specific path
+     *
+     * @param string $path
+     * @param string $action
+     * @return bool
+     */
+    public function checkRightsForSpecificPath(string $path, string $action = 'access'): bool
+    {
+        if (!str_starts_with($path, '/')) {
+            $path = '/' . $path;
+        }
+        $path = rtrim($path, '/');
+
+        return $this->processCheckRights($path, $action);
+    }
+
+    /**
+     * Get the special rights for a user
+     *
+     * @param int $user_id
+     * @return array
+     */
+    public static function getSpecialRights(int $user_id): array
+    {
+        $systemRights = new systemRightsRepo();
+        $systemRights->loadByWhere(['user_id' => $user_id]);
+
+        $rights = [];
+        foreach ($systemRights as $systemRight) {
+            $rights[$systemRight->tool] = [
+                'access' => $systemRight->access,
+                'read' => $systemRight->read,
+                'write' => $systemRight->write,
+                'delete' => $systemRight->delete,
+            ];
+        }
+        return $rights;
+    }
+
+    /**
      * Set the access list
      *
      * @param $routes
@@ -75,82 +130,6 @@ class Rights
                 }
             }
         }
-    }
-
-    /**
-     * Get the parent rights
-     *
-     * @param $path
-     * @param $accessList
-     * @return mixed|null
-     */
-    public function getParentRights($path, $accessList): mixed
-    {
-        $parts = explode('/', trim($path, '/'));
-        array_pop($parts);
-        while (!empty($parts)) {
-            $parentPath = '/' . implode('/', $parts);
-            if (isset($accessList[$parentPath])) {
-                return $accessList[$parentPath];
-            }
-            array_pop($parts);
-        }
-        return null;
-    }
-
-    /**
-     * Get the special rights for a user
-     *
-     * @param int $user_id
-     * @return array
-     */
-    public static function getSpecialRights(int $user_id): array
-    {
-        $systemRights = new systemRightsRepo();
-        $systemRights->loadByWhere(['user_id' => $user_id]);
-
-        $rights = [];
-        foreach ($systemRights as $systemRight) {
-            $rights[$systemRight->tool] = [
-                'access' => $systemRight->access,
-                'read' => $systemRight->read,
-                'write' => $systemRight->write,
-                'delete' => $systemRight->delete,
-            ];
-        }
-        return $rights;
-    }
-
-    /**
-     * Check if the user has the right to access a page based on the main path
-     *
-     * @param string $action
-     * @return bool
-     */
-    public function checkRights(string $action = 'access'): bool
-    {
-        $path = $_SERVER['REQUEST_URI'];
-        $path = explode('?', $path)[0];
-        $path = rtrim($path, '/');
-
-        return $this->processCheckRights($path, $action);
-    }
-
-    /**
-     * Check if the user has the right to access a page based on a specific path
-     *
-     * @param string $path
-     * @param string $action
-     * @return bool
-     */
-    public function checkRightsForSpecificPath(string $path, string $action = 'access'): bool
-    {
-        if (!str_starts_with($path, '/')) {
-            $path = '/' . $path;
-        }
-        $path = rtrim($path, '/');
-
-        return $this->processCheckRights($path, $action);
     }
 
     /**
