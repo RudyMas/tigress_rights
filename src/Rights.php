@@ -10,7 +10,7 @@ use Repository\systemRightsRepo;
  * @author       Rudy Mas <rudy.mas@rudymas.be>
  * @copyright    2024, Rudy Mas (http://rudymas.be/)
  * @license      https://opensource.org/licenses/GPL-3.0 GNU General Public License, version 3 (GPL-3.0)
- * @version      1.4.3
+ * @version      1.5.0
  * @lastmodified 2024-11-08
  * @package      Tigress
  */
@@ -25,7 +25,7 @@ class Rights
      */
     public static function version(): string
     {
-        return '1.4.3';
+        return '1.5.0';
     }
 
     /**
@@ -39,8 +39,9 @@ class Rights
         $path = $_SERVER['REQUEST_URI'];
         $path = explode('?', $path)[0];
         $path = rtrim($path, '/');
+        $requestMethod = $_SERVER['REQUEST_METHOD'] ?? 'GET';
 
-        return $this->processCheckRights($path, $action);
+        return $this->processCheckRights($path, $action, $requestMethod);
     }
 
     /**
@@ -48,16 +49,17 @@ class Rights
      *
      * @param string $path
      * @param string $action
+     * @param string $requestMethod
      * @return bool
      */
-    public function checkRightsForSpecificPath(string $path, string $action = 'access'): bool
+    public function checkRightsForSpecificPath(string $path, string $action = 'access', string $requestMethod = 'GET'): bool
     {
         if (!str_starts_with($path, '/')) {
             $path = '/' . $path;
         }
         $path = rtrim($path, '/');
 
-        return $this->processCheckRights($path, $action);
+        return $this->processCheckRights($path, $action, $requestMethod);
     }
 
     /**
@@ -94,54 +96,41 @@ class Rights
         // First, build the access list for paths that explicitly have rights
         foreach (ROUTES->routes as $route) {
             $path = preg_replace('/{[^}]+}/', '*', $route->path);
+            $requestMethod = $route->request ?? 'GET';
 
-            // Add level-rights, special-rights, and special-rights-default if available
-            if ($route->request === 'GET') {
-                $this->accessList[$path] = [
-                    'level_rights' => $route->level_rights ?? []
-                ];
+            if (!isset($this->accessList[$path][$requestMethod])) {
+                $this->accessList[$path][$requestMethod] = [];
             }
 
+            $this->accessList[$path][$requestMethod]['level_rights'] = $route->level_rights ?? [];
+
             if (isset($route->special_rights)) {
-                if ($route->request === 'GET') {
-                    $this->accessList[$path]['special_rights'] = $route->special_rights;
-                }
+                $this->accessList[$path][$requestMethod]['special_rights'] = $route->special_rights;
             }
 
             if (isset($route->special_rights_default)) {
-                if ($route->request === 'GET') {
-                    $this->accessList[$path]['special_rights_default'] = $route->special_rights_default;
-                }
+                $this->accessList[$path][$requestMethod]['special_rights_default'] = $route->special_rights_default;
             }
         }
 
         // Now inherit rights from the first parent that has them defined
         foreach (ROUTES->routes as $route) {
             $path = preg_replace('/{[^}]+}/', '*', $route->path);
+            $requestMethod = $route->request ?? 'GET';
 
-            // Only inherit rights if level-rights, special-rights, and special-rights-default are empty
-            if (empty($this->accessList[$path]['level_rights']) &&
-                empty($this->accessList[$path]['special_rights']) &&
-                empty($this->accessList[$path]['special_rights_default'])
+            if (empty($this->accessList[$path][$requestMethod]['level_rights']) &&
+                empty($this->accessList[$path][$requestMethod]['special_rights']) &&
+                empty($this->accessList[$path][$requestMethod]['special_rights_default'])
             ) {
-                $parentRights = $this->getFirstParentWithRights($path);
+                $parentRights = $this->getFirstParentWithRights($path, $requestMethod);
                 if ($parentRights) {
-                    $this->accessList[$path]['level_rights'] = $parentRights['level_rights'];
-                    if (isset($parentRights['special_rights'])) {
-                        $this->accessList[$path]['special_rights'] = $parentRights['special_rights'];
-                    }
-                    if (isset($parentRights['special_rights_default'])) {
-                        $this->accessList[$path]['special_rights_default'] = $parentRights['special_rights_default'];
-                    }
+                    $this->accessList[$path][$requestMethod] = array_merge($this->accessList[$path][$requestMethod], $parentRights);
                 }
             }
         }
     }
 
-    /**
-     * Recursively find the first parent path with level-rights set.
-     */
-    private function getFirstParentWithRights(string $path): ?array
+    private function getFirstParentWithRights(string $path, string $requestMethod): ?array
     {
         // Remove trailing slash for consistency
         $path = rtrim($path, '/');
@@ -149,9 +138,9 @@ class Rights
         // Find the immediate parent path by removing the last segment
         $parentPath = substr($path, 0, strrpos($path, '/'));
 
-        // Check if the parent path exists and has level_rights defined
-        if (isset($this->accessList[$parentPath]) && !empty($this->accessList[$parentPath]['level_rights'])) {
-            return $this->accessList[$parentPath];
+        if (isset($this->accessList[$parentPath][$requestMethod]) &&
+            !empty($this->accessList[$parentPath][$requestMethod]['level_rights'])) {
+            return $this->accessList[$parentPath][$requestMethod];
         }
 
         // If there's no parent path to check, return null
@@ -159,18 +148,10 @@ class Rights
             return null;
         }
 
-        // Recursively check the next parent path up the chain
-        return $this->getFirstParentWithRights($parentPath);
+        return $this->getFirstParentWithRights($parentPath, $requestMethod);
     }
 
-    /**
-     * Process the check rights
-     *
-     * @param string $path
-     * @param string $action
-     * @return bool
-     */
-    private function processCheckRights(string $path, string $action): bool
+    private function processCheckRights(string $path, string $action, string $requestMethod): bool
     {
         // Ensure the user is logged in
         if (!isset($_SESSION['user'])) {
@@ -179,13 +160,12 @@ class Rights
 
         $rights = null;
 
-        // Match the path in the access list with support for wildcards
-        foreach ($this->accessList as $key => $value) {
+        foreach ($this->accessList as $key => $methods) {
             $pattern = '#^' . preg_replace('#\\\\\*#', '([^/]+)', preg_quote($key, '#')) . '$#';
 
-            if (preg_match($pattern, $path)) {
+            if (preg_match($pattern, $path) && isset($methods[$requestMethod])) {
                 $path = $key;
-                $rights = $value;
+                $rights = $methods[$requestMethod];
                 break;
             }
         }
@@ -197,7 +177,7 @@ class Rights
 
         // Validate level rights or special rights
         $userRight = $_SESSION['user']['right'];
-        if (
+        return (
             (
                 empty($rights['level_rights'])
                 || in_array($userRight, $rights['level_rights'])
@@ -208,9 +188,6 @@ class Rights
                 && isset($_SESSION['userRights'][$rights['special_rights']])
                 && $_SESSION['userRights'][$rights['special_rights']][$action]
             )
-        ) {
-            return true;
-        }
-        return false;
+        );
     }
 }
