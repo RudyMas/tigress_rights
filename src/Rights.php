@@ -130,6 +130,13 @@ class Rights
         }
     }
 
+    /**
+     * Get the first parent path with rights
+     *
+     * @param string $path
+     * @param string $requestMethod
+     * @return array|null
+     */
     private function getFirstParentWithRights(string $path, string $requestMethod): ?array
     {
         // Remove trailing slash for consistency
@@ -151,6 +158,14 @@ class Rights
         return $this->getFirstParentWithRights($parentPath, $requestMethod);
     }
 
+    /**
+     * Process the check rights
+     *
+     * @param string $path
+     * @param string $action
+     * @param string $requestMethod
+     * @return bool
+     */
     private function processCheckRights(string $path, string $action, string $requestMethod): bool
     {
         // Ensure the user is logged in
