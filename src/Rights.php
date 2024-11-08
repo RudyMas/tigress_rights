@@ -10,7 +10,7 @@ use Repository\systemRightsRepo;
  * @author       Rudy Mas <rudy.mas@rudymas.be>
  * @copyright    2024, Rudy Mas (http://rudymas.be/)
  * @license      https://opensource.org/licenses/GPL-3.0 GNU General Public License, version 3 (GPL-3.0)
- * @version      1.4.2
+ * @version      1.4.3
  * @lastmodified 2024-11-08
  * @package      Tigress
  */
@@ -25,7 +25,7 @@ class Rights
      */
     public static function version(): string
     {
-        return '1.4.2';
+        return '1.4.3';
     }
 
     /**
@@ -96,16 +96,22 @@ class Rights
             $path = preg_replace('/{[^}]+}/', '*', $route->path);
 
             // Add level-rights, special-rights, and special-rights-default if available
-            $this->accessList[$path] = [
-                'level_rights' => $route->level_rights ?? []
-            ];
+            if ($route->request === 'GET') {
+                $this->accessList[$path] = [
+                    'level_rights' => $route->level_rights ?? []
+                ];
+            }
 
             if (isset($route->special_rights)) {
-                $this->accessList[$path]['special_rights'] = $route->special_rights;
+                if ($route->request === 'GET') {
+                    $this->accessList[$path]['special_rights'] = $route->special_rights;
+                }
             }
 
             if (isset($route->special_rights_default)) {
-                $this->accessList[$path]['special_rights_default'] = $route->special_rights_default;
+                if ($route->request === 'GET') {
+                    $this->accessList[$path]['special_rights_default'] = $route->special_rights_default;
+                }
             }
         }
 
