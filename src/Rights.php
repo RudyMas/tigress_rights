@@ -10,8 +10,8 @@ use Repository\systemRightsRepo;
  * @author       Rudy Mas <rudy.mas@rudymas.be>
  * @copyright    2024, Rudy Mas (http://rudymas.be/)
  * @license      https://opensource.org/licenses/GPL-3.0 GNU General Public License, version 3 (GPL-3.0)
- * @version      1.4.1
- * @lastmodified 2024-11-06
+ * @version      1.4.2
+ * @lastmodified 2024-11-08
  * @package      Tigress
  */
 class Rights
@@ -25,7 +25,7 @@ class Rights
      */
     public static function version(): string
     {
-        return '1.4.1';
+        return '1.4.2';
     }
 
     /**
@@ -54,13 +54,16 @@ class Rights
             }
         }
 
-        // Now inherit rights from parent paths for routes that don't have them defined
+        // Now inherit rights from the first parent that has them defined
         foreach (ROUTES->routes as $route) {
-            $path = $route->path;
+            $path = preg_replace('/{[^}]+}/', '*', $route->path);
 
             // Only inherit rights if level-rights, special-rights, and special-rights-default are empty
-            if (empty($this->accessList[$path]['level_rights']) && empty($this->accessList[$path]['special_rights']) && empty($this->accessList[$path]['special_rights_default'])) {
-                $parentRights = $this->getParentRights($path, $this->accessList);
+            if (empty($this->accessList[$path]['level_rights']) &&
+                empty($this->accessList[$path]['special_rights']) &&
+                empty($this->accessList[$path]['special_rights_default'])
+            ) {
+                $parentRights = $this->getFirstParentWithRights($path);
                 if ($parentRights) {
                     $this->accessList[$path]['level_rights'] = $parentRights['level_rights'];
                     if (isset($parentRights['special_rights'])) {
@@ -148,6 +151,31 @@ class Rights
         $path = rtrim($path, '/');
 
         return $this->processCheckRights($path, $action);
+    }
+
+    /**
+     * Recursively find the first parent path with level-rights set.
+     */
+    private function getFirstParentWithRights(string $path): ?array
+    {
+        // Remove trailing slash for consistency
+        $path = rtrim($path, '/');
+
+        // Find the immediate parent path by removing the last segment
+        $parentPath = substr($path, 0, strrpos($path, '/'));
+
+        // Check if the parent path exists and has level_rights defined
+        if (isset($this->accessList[$parentPath]) && !empty($this->accessList[$parentPath]['level_rights'])) {
+            return $this->accessList[$parentPath];
+        }
+
+        // If there's no parent path to check, return null
+        if ($parentPath === '') {
+            return null;
+        }
+
+        // Recursively check the next parent path up the chain
+        return $this->getFirstParentWithRights($parentPath);
     }
 
     /**
