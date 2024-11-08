@@ -7,6 +7,6 @@ use Tigress\Model;
 /**
  * Model user
  */
-class system_right extends Model
+class systemRight extends Model
 {
 }

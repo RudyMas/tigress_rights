@@ -13,9 +13,11 @@
   ],
   "minimum-stability": "stable",
   "require": {
-    "php": ">=8.3",
-    "tigress/core": "*",
-    "tigress/router": "*"
+    "php": ">=8.3"
+  },
+  "require-dev": {
+    "tigress/core": ">=v0.9.0",
+    "tigress/repository": ">=v1.5.13"
   },
   "autoload": {
     "psr-4": {

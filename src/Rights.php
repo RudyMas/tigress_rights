@@ -10,7 +10,7 @@ use Repository\systemRightsRepo;
  * @author       Rudy Mas <rudy.mas@rudymas.be>
  * @copyright    2024, Rudy Mas (http://rudymas.be/)
  * @license      https://opensource.org/licenses/GPL-3.0 GNU General Public License, version 3 (GPL-3.0)
- * @version      1.5.1
+ * @version      1.5.2
  * @lastmodified 2024-11-08
  * @package      Tigress
  */
@@ -25,7 +25,7 @@ class Rights
      */
     public static function version(): string
     {
-        return '1.5.1';
+        return '1.5.2';
     }
 
     /**
@@ -88,10 +88,9 @@ class Rights
     /**
      * Set the access list
      *
-     * @param $routes
      * @return void
      */
-    public function setRights($routes): void
+    public function setRights(): void
     {
         // First, build the access list for paths that explicitly have rights
         foreach (ROUTES->routes as $route) {
@@ -204,5 +203,15 @@ class Rights
                 && $_SESSION['userRights'][$rights['special_rights']][$action]
             )
         );
+    }
+
+    /**
+     * Get the access list
+     *
+     * @return array
+     */
+    public function getAccessList(): array
+    {
+        return $this->accessList;
     }
 }
