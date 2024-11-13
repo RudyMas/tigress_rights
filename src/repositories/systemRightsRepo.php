@@ -53,6 +53,44 @@ class systemRightsRepo extends Repository
     }
 
     /**
+     * Create the security matrix
+     *
+     * @param string $jsonMenuFile
+     * @return array
+     */
+    public function createSecurityMatrix(string $jsonMenuFile): array
+    {
+        $data = json_decode(file_get_contents(SYSTEM_ROOT . '/src/menus/' . $jsonMenuFile), true);
+        $rights = RIGHTS->getAccessList();
+
+        $security = [];
+        foreach ($data as $key => $value) {
+            foreach ($value as $keySub => $valueSub) {
+                if (!isset($rights[$valueSub['url']]['GET'])) continue;
+                $security[$key][$keySub] = $rights[$valueSub['url']]['GET'];
+            }
+        }
+        return $security;
+    }
+
+    /**
+     * Get the rights by user id
+     *
+     * @param int $id
+     * @return array
+     */
+    public function getRightsByUserId(int $id): array
+    {
+        $this->loadByWhere(['user_id' => $id]);
+
+        $rights = [];
+        foreach ($this as $systemRight) {
+            $rights[$systemRight->tool] = $systemRight->getProperties();
+        }
+        return $rights;
+    }
+
+    /**
      * Create the rights matrix
      *
      * @param string $jsonMenuFile
@@ -83,26 +121,5 @@ class systemRightsRepo extends Repository
         $rechtenMatrix['id'] = $id;
         $rechtenMatrix['rechten'] = $matrix;
         return $rechtenMatrix;
-    }
-
-    /**
-     * Create the security matrix
-     *
-     * @param string $jsonMenuFile
-     * @return array
-     */
-    private function createSecurityMatrix(string $jsonMenuFile): array
-    {
-        $data = json_decode(file_get_contents(SYSTEM_ROOT . '/src/menus/' . $jsonMenuFile), true);
-        $rights = RIGHTS->getAccessList();
-
-        $security = [];
-        foreach ($data as $key => $value) {
-            foreach ($value as $keySub => $valueSub) {
-                if (!isset($rights[$valueSub['url']]['GET'])) continue;
-                $security[$key][$keySub] = $rights[$valueSub['url']]['GET'];
-            }
-        }
-        return $security;
     }
 }
