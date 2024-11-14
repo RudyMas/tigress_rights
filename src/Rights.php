@@ -10,8 +10,8 @@ use Repository\systemRightsRepo;
  * @author       Rudy Mas <rudy.mas@rudymas.be>
  * @copyright    2024, Rudy Mas (http://rudymas.be/)
  * @license      https://opensource.org/licenses/GPL-3.0 GNU General Public License, version 3 (GPL-3.0)
- * @version      1.5.3
- * @lastmodified 2024-11-13
+ * @version      1.5.4
+ * @lastmodified 2024-11-14
  * @package      Tigress
  */
 class Rights
@@ -25,7 +25,7 @@ class Rights
      */
     public static function version(): string
     {
-        return '1.5.3';
+        return '1.5.4';
     }
 
     /**
@@ -88,12 +88,13 @@ class Rights
     /**
      * Set the access list
      *
+     * @param array $routes
      * @return void
      */
-    public function setRights(): void
+    public function setRights(array $routes): void
     {
         // First, build the access list for paths that explicitly have rights
-        foreach (ROUTES->routes as $route) {
+        foreach ($routes as $route) {
             $path = preg_replace('/{[^}]+}/', '*', $route->path);
             $requestMethod = $route->request ?? 'GET';
 
@@ -113,7 +114,7 @@ class Rights
         }
 
         // Now inherit rights from the first parent that has them defined
-        foreach (ROUTES->routes as $route) {
+        foreach ($routes as $route) {
             $path = preg_replace('/{[^}]+}/', '*', $route->path);
             $requestMethod = $route->request ?? 'GET';
 
