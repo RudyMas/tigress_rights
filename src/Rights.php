@@ -5,13 +5,12 @@ namespace Tigress;
 use Repository\systemRightsRepo;
 
 /**
- * Class Rights (PHP version 8.3)
+ * Class Rights (PHP version 8.4)
  *
  * @author       Rudy Mas <rudy.mas@rudymas.be>
  * @copyright    2024, Rudy Mas (http://rudymas.be/)
  * @license      https://opensource.org/licenses/GPL-3.0 GNU General Public License, version 3 (GPL-3.0)
- * @version      1.5.4
- * @lastmodified 2024-11-14
+ * @version      2024.11.28.0
  * @package      Tigress
  */
 class Rights
@@ -25,7 +24,7 @@ class Rights
      */
     public static function version(): string
     {
-        return '1.5.4';
+        return '2024.11.28';
     }
 
     /**

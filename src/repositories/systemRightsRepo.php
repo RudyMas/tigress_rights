@@ -10,7 +10,7 @@ use Tigress\Repository;
  */
 class systemRightsRepo extends Repository
 {
-    private array $rechtenMatrix = [];
+    private array $rightsMatrix = [];
 
     public function __construct()
     {
@@ -22,9 +22,17 @@ class systemRightsRepo extends Repository
         parent::__construct();
     }
 
-    public function updateRechtenGebruiker(string $jsonMenuFile, int $id, int $recht): void
+    /**
+     * Update the rights of a user
+     *
+     * @param string $jsonMenuFile
+     * @param int $id
+     * @param int $recht
+     * @return void
+     */
+    public function updateRightsUser(string $jsonMenuFile, int $id, int $recht): void
     {
-        $rechtenMatrix = $this->createRechtenMatrix($jsonMenuFile, $id, $recht);
+        $rightsMatrix = $this->createRightsMatrix($jsonMenuFile, $id, $recht);
 
         $sql = "DELETE FROM system_rights
                 WHERE user_id = :id";
@@ -32,8 +40,8 @@ class systemRightsRepo extends Repository
             ':id' => $id
         ];
         $this->deleteByQuery($sql, $keyBindings);
-        if (isset($rechtenMatrix['rechten'])) {
-            foreach ($rechtenMatrix['rechten'] as $tool => $data) {
+        if (isset($rightsMatrix['rechten'])) {
+            foreach ($rightsMatrix['rechten'] as $tool => $data) {
                 $access = $data['toegang'] ?? 0;
                 $read = $data['lees'] ?? 0;
                 $write = $data['schrijf'] ?? 0;
@@ -41,7 +49,7 @@ class systemRightsRepo extends Repository
 
                 $this->new();
                 $user = $this->current();
-                $user->user_id = $rechtenMatrix['id'];
+                $user->user_id = $rightsMatrix['id'];
                 $user->tool = $tool;
                 $user->access = $access;
                 $user->read = $read;
@@ -98,11 +106,11 @@ class systemRightsRepo extends Repository
      * @param int $recht
      * @return array
      */
-    private function createRechtenMatrix(string $jsonMenuFile, int $id, int $recht): array
+    private function createRightsMatrix(string $jsonMenuFile, int $id, int $recht): array
     {
         $security = $this->createSecurityMatrix($jsonMenuFile);
 
-        $rechtenMatrix = [];
+        $rightsMatrix = [];
         $matrix = [];
         foreach ($security as $value) {
             if (!strpos(json_encode($value), 'special_rights_default')) continue;
@@ -118,8 +126,8 @@ class systemRightsRepo extends Repository
                 }
             }
         }
-        $rechtenMatrix['id'] = $id;
-        $rechtenMatrix['rechten'] = $matrix;
-        return $rechtenMatrix;
+        $rightsMatrix['id'] = $id;
+        $rightsMatrix['rechten'] = $matrix;
+        return $rightsMatrix;
     }
 }
