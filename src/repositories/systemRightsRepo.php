@@ -73,7 +73,7 @@ class systemRightsRepo extends Repository
 
         $security = [];
         foreach ($data as $key => $value) {
-            foreach ($value as $keySub => $valueSub) {
+            foreach ($value['children'] as $keySub => $valueSub) {
                 if (!isset($rights[$valueSub['url']]['GET'])) continue;
                 $security[$key][$keySub] = $rights[$valueSub['url']]['GET'];
             }

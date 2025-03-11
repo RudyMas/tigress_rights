@@ -10,7 +10,7 @@ use Repository\systemRightsRepo;
  * @author       Rudy Mas <rudy.mas@rudymas.be>
  * @copyright    2024, Rudy Mas (http://rudymas.be/)
  * @license      https://opensource.org/licenses/GPL-3.0 GNU General Public License, version 3 (GPL-3.0)
- * @version      2025.03.03.0
+ * @version      2025.03.11.0
  * @package      Tigress
  */
 class Rights
@@ -24,7 +24,7 @@ class Rights
      */
     public static function version(): string
     {
-        return '2025.03.03';
+        return '2025.03.11';
     }
 
     /**
