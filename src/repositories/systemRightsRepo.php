@@ -42,10 +42,10 @@ class systemRightsRepo extends Repository
         $this->deleteByQuery($sql, $keyBindings);
         if (isset($rightsMatrix['rechten'])) {
             foreach ($rightsMatrix['rechten'] as $tool => $data) {
-                $access = $data['toegang'] ?? 0;
-                $read = $data['lees'] ?? 0;
-                $write = $data['schrijf'] ?? 0;
-                $delete = $data['verwijder'] ?? 0;
+                $access = $data['access'] ?? 0;
+                $read = $data['read'] ?? 0;
+                $write = $data['write'] ?? 0;
+                $delete = $data['delete'] ?? 0;
 
                 $this->new();
                 $user = $this->current();
@@ -118,16 +118,16 @@ class systemRightsRepo extends Repository
                 if (!isset($valueSub['special_rights_default'])) continue;
                 if (in_array($recht, $valueSub['special_rights_default'])) {
                     $matrix[$valueSub['special_rights']] = [
-                        'toegang' => 1,
-                        'lees' => 1,
-                        'schrijf' => 1,
-                        'verwijder' => 1,
+                        'access' => 1,
+                        'read' => 1,
+                        'write' => 1,
+                        'delete' => 1,
                     ];
                 }
             }
         }
         $rightsMatrix['id'] = $id;
-        $rightsMatrix['rechten'] = $matrix;
+        $rightsMatrix['rights'] = $matrix;
         return $rightsMatrix;
     }
 }

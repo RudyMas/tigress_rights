@@ -16,10 +16,7 @@
     "php": ">=8.4"
   },
   "require-dev": {
-    "tigress/core": "dev-main",
-    "tigress/database": "dev-main",
-    "tigress/repository": "dev-main",
-    "tigress/model": "dev-main"
+    "tigress/core": "^2025"
   },
   "autoload": {
     "psr-4": {
