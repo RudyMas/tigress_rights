@@ -40,8 +40,8 @@ class systemRightsRepo extends Repository
             ':id' => $id
         ];
         $this->deleteByQuery($sql, $keyBindings);
-        if (isset($rightsMatrix['rechten'])) {
-            foreach ($rightsMatrix['rechten'] as $tool => $data) {
+        if (isset($rightsMatrix['rights'])) {
+            foreach ($rightsMatrix['rights'] as $tool => $data) {
                 $access = $data['access'] ?? 0;
                 $read = $data['read'] ?? 0;
                 $write = $data['write'] ?? 0;
