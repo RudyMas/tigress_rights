@@ -10,7 +10,7 @@ use Repository\systemRightsRepo;
  * @author       Rudy Mas <rudy.mas@rudymas.be>
  * @copyright    2024-2025, Rudy Mas (http://rudymas.be/)
  * @license      https://opensource.org/licenses/GPL-3.0 GNU General Public License, version 3 (GPL-3.0)
- * @version      2025.06.03.0
+ * @version      2025.06.03.1
  * @package      Tigress
  */
 class Rights
@@ -170,7 +170,7 @@ class Rights
     private function processCheckRights(string $path, string $action, string $requestMethod): bool
     {
         // Ensure the user is logged in
-        if (!isset($_SESSION['user']) && $_SESSION['user']['access_level'] <= 0) {
+        if (!isset($_SESSION['user']) || $_SESSION['user']['access_level'] <= 0) {
             return false;
         }
 
