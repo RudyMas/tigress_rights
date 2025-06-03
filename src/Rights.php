@@ -170,7 +170,7 @@ class Rights
     private function processCheckRights(string $path, string $action, string $requestMethod): bool
     {
         // Ensure the user is logged in
-        if (!isset($_SESSION['user'])) {
+        if (!isset($_SESSION['user']) && $_SESSION['user']['access_level'] <= 0) {
             return false;
         }
 
