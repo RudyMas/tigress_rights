@@ -2,13 +2,12 @@
 
 namespace Repository;
 
-use Tigress\Core;
 use Tigress\Repository;
 
 /**
  * Repository for system_rights table
  */
-class systemRightsRepo extends Repository
+class SystemRightsRepo extends Repository
 {
     private array $rightsMatrix = [];
 
@@ -16,7 +15,7 @@ class systemRightsRepo extends Repository
     {
         $this->dbName = 'default';
         $this->table = 'system_rights';
-        $this->model = 'systemRight';
+        $this->model = 'DefaultModel';
         $this->primaryKey = ['user_id', 'tool'];
         $this->autoload = true;
         parent::__construct();
@@ -99,7 +98,7 @@ class systemRightsRepo extends Repository
     }
 
     /**
-     * Create the rights matrix
+     * Create the rights' matrix
      *
      * @param string $jsonMenuFile
      * @param int $id
