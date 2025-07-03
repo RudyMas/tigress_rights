@@ -21,7 +21,6 @@
   "autoload": {
     "psr-4": {
       "Tigress\\": "src/",
-      "Model\\": "src/models/",
       "Repository\\": "src/repositories"
     }
   }
