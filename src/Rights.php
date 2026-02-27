@@ -8,9 +8,9 @@ use Repository\SystemRightsRepo;
  * Class Rights (PHP version 8.5)
  *
  * @author       Rudy Mas <rudy.mas@rudymas.be>
- * @copyright    2024-2025, Rudy Mas (http://rudymas.be/)
+ * @copyright    2024-2026, Rudy Mas (http://rudymas.be/)
  * @license      https://opensource.org/licenses/GPL-3.0 GNU General Public License, version 3 (GPL-3.0)
- * @version      2025.12.09.0
+ * @version      2026.02.27.0
  * @package      Tigress
  */
 class Rights
@@ -24,7 +24,7 @@ class Rights
      */
     public static function version(): string
     {
-        return '2025.12.09';
+        return '2026.02.27';
     }
 
     /**
@@ -71,74 +71,6 @@ class Rights
     }
 
     /**
-     * Get the special rights for a user
-     *
-     * @param int $user_id
-     * @return array
-     */
-    public static function getSpecialRights(int $user_id): array
-    {
-        $systemRights = new SystemRightsRepo();
-        $systemRights->loadByWhere(['user_id' => $user_id]);
-
-        $rights = [];
-        foreach ($systemRights as $systemRight) {
-            $rights[$systemRight->tool] = [
-                'access' => $systemRight->access,
-                'read' => $systemRight->read,
-                'write' => $systemRight->write,
-                'delete' => $systemRight->delete,
-            ];
-        }
-        return $rights;
-    }
-
-    /**
-     * Set the access list
-     *
-     * @param array $routes
-     * @return void
-     */
-    public function setRights(array $routes): void
-    {
-        // First, build the access list for paths that explicitly have rights
-        foreach ($routes as $route) {
-            $path = preg_replace('/{[^}]+}/', '*', $route->path);
-            $requestMethod = $route->request ?? 'GET';
-
-            if (!isset($this->accessList[$path][$requestMethod])) {
-                $this->accessList[$path][$requestMethod] = [];
-            }
-
-            $this->accessList[$path][$requestMethod]['level_rights'] = $route->level_rights ?? [];
-
-            if (isset($route->special_rights)) {
-                $this->accessList[$path][$requestMethod]['special_rights'] = $route->special_rights;
-            }
-
-            if (isset($route->special_rights_default)) {
-                $this->accessList[$path][$requestMethod]['special_rights_default'] = $route->special_rights_default;
-            }
-        }
-
-        // Now inherit rights from the first parent that has them defined
-        foreach ($routes as $route) {
-            $path = preg_replace('/{[^}]+}/', '*', $route->path);
-            $requestMethod = $route->request ?? 'GET';
-
-            if (empty($this->accessList[$path][$requestMethod]['level_rights']) &&
-                empty($this->accessList[$path][$requestMethod]['special_rights']) &&
-                empty($this->accessList[$path][$requestMethod]['special_rights_default'])
-            ) {
-                $parentRights = $this->getFirstParentWithRights($path, $requestMethod);
-                if ($parentRights) {
-                    $this->accessList[$path][$requestMethod] = array_merge($this->accessList[$path][$requestMethod], $parentRights);
-                }
-            }
-        }
-    }
-
-    /**
      * Get the first parent path with rights
      *
      * @param string $path
@@ -164,6 +96,29 @@ class Rights
         }
 
         return $this->getFirstParentWithRights($parentPath, $requestMethod);
+    }
+
+    /**
+     * Get the special rights for a user
+     *
+     * @param int $user_id
+     * @return array
+     */
+    public static function getSpecialRights(int $user_id): array
+    {
+        $systemRights = new SystemRightsRepo();
+        $systemRights->loadByWhere(['user_id' => $user_id]);
+
+        $rights = [];
+        foreach ($systemRights as $systemRight) {
+            $rights[$systemRight->tool] = [
+                'access' => $systemRight->access,
+                'read' => $systemRight->read,
+                'write' => $systemRight->write,
+                'delete' => $systemRight->delete,
+            ];
+        }
+        return $rights;
     }
 
     /**
@@ -212,6 +167,111 @@ class Rights
                 && $_SESSION['userRights'][$rights['special_rights']][$action]
             )
         );
+    }
+
+    /**
+     * Remove system rights for a user and tool
+     *
+     * @param object $user
+     * @param string $tool
+     * @return void
+     */
+    public function removeSystemRights(object $user, string $tool): void
+    {
+        $systemRightsRepo = new SystemRightsRepo();
+        $systemRightsRepo->deleteByPrimaryKey([
+            'user_id' => $user->id,
+            'tool' => $tool
+        ]);
+    }
+
+    /**
+     * Set the access list
+     *
+     * @param array $routes
+     * @return void
+     */
+    public function setRights(array $routes): void
+    {
+        // First, build the access list for paths that explicitly have rights
+        foreach ($routes as $route) {
+            $path = preg_replace('/{[^}]+}/', '*', $route->path);
+            $requestMethod = $route->request ?? 'GET';
+
+            if (!isset($this->accessList[$path][$requestMethod])) {
+                $this->accessList[$path][$requestMethod] = [];
+            }
+
+            $this->accessList[$path][$requestMethod]['level_rights'] = $route->level_rights ?? [];
+
+            if (isset($route->special_rights)) {
+                $this->accessList[$path][$requestMethod]['special_rights'] = $route->special_rights;
+            }
+
+            if (isset($route->special_rights_default)) {
+                $this->accessList[$path][$requestMethod]['special_rights_default'] = $route->special_rights_default;
+            }
+        }
+
+        // Now inherit rights from the first parent that has them defined
+        foreach ($routes as $route) {
+            $path = preg_replace('/{[^}]+}/', '*', $route->path);
+            $requestMethod = $route->request ?? 'GET';
+
+            if (empty($this->accessList[$path][$requestMethod]['level_rights']) &&
+                empty($this->accessList[$path][$requestMethod]['special_rights']) &&
+                empty($this->accessList[$path][$requestMethod]['special_rights_default'])
+            ) {
+                $parentRights = $this->getFirstParentWithRights($path, $requestMethod);
+                if ($parentRights) {
+                    $this->accessList[$path][$requestMethod] = array_merge($this->accessList[$path][$requestMethod], $parentRights);
+                }
+            }
+        }
+    }
+
+    /**
+     * Set system rights for a user and tool
+     *
+     * @param object $user
+     * @param string $tool
+     * @param array|null $rights
+     * @return void
+     */
+    public function setSystemRights(object $user, string $tool, ?array $rights = null): void
+    {
+        $defaultRights = [
+            'access' => 1,
+            'read' => 1,
+            'write' => 1,
+            'delete' => 1,
+        ];
+
+        if ($rights !== null) {
+            $defaultRights = array_merge($defaultRights, $rights);
+        }
+
+        if ($user->active == 1) {
+            $systemRightsRepo = new SystemRightsRepo();
+            $systemRightsRepo->loadByWhere([
+                'user_id' => $user->id,
+                'tool' => $tool
+            ]);
+
+            if ($systemRightsRepo->isEmpty()) {
+                $systemRightsRepo->new();
+            }
+            $systemRight = $systemRightsRepo->current();
+            $systemRight->user_id = $user->id;
+            $systemRight->tool = $tool;
+            $systemRight->access = $defaultRights['access'];
+            $systemRight->read = $defaultRights['read'];
+            $systemRight->write = $defaultRights['write'];
+            $systemRight->delete = $defaultRights['delete'];
+            $systemRightsRepo->save($systemRight);
+        } else {
+            $_SESSION['error'] = 'Gebruiker is niet actief in de gebruikersdatabase.';
+        }
     }
 
     /**
