@@ -2,6 +2,7 @@
 
 namespace Repository;
 
+use Throwable;
 use Tigress\Repository;
 
 /**
@@ -28,6 +29,7 @@ class SystemRightsRepo extends Repository
      * @param int $id
      * @param int $recht
      * @return void
+     * @throws Throwable
      */
     public function updateRightsUser(string $jsonMenuFile, int $id, int $recht): void
     {

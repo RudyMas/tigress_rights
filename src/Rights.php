@@ -3,6 +3,7 @@
 namespace Tigress;
 
 use Repository\SystemRightsRepo;
+use Throwable;
 
 /**
  * Class Rights (PHP version 8.5)
@@ -237,6 +238,7 @@ class Rights
      * @param string $tool
      * @param array|null $rights
      * @return void
+     * @throws Throwable
      */
     public function setSystemRights(object $user, string $tool, ?array $rights = null): void
     {
