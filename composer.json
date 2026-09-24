@@ -2,12 +2,12 @@
   "name": "tigress/rights",
   "description": "Tigress rights library",
   "type": "library",
-  "license": "GPL-3.0-or-later",
+  "license": "Apache-2.0",
   "authors": [
     {
       "name": "Rudy Mas",
       "email": "rudy.mas@rudymas.be",
-      "homepage": "https://rudymas.be",
+      "homepage": "https://www.rudymas.be",
       "role": "Developer"
     }
   ],
